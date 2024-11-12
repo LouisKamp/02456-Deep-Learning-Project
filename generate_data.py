@@ -1,7 +1,6 @@
 #%%
 from sympy import *
 import itertools
-import matplotlib.pyplot as plt
 import torch
 # %%
 
@@ -41,12 +40,13 @@ X, Y = torch.meshgrid(torch.linspace(0,1,n), torch.linspace(0,1,n))
 
 #%%
 
-fig, axs = plt.subplots(1,2)
+solutions = torch.zeros((len(phis), n, n))
+laplacians = torch.zeros((len(phis), n, n))
 
-i = 30
+for i, (phi, f) in enumerate(zip(phis, fs)):
+    solutions[i] = phi(X,Y)
+    laplacians[i] = f(X,Y)
 
-axs[0].matshow(fs[i](X,Y))
-axs[0].set_title("$\phi$")
-axs[1].matshow(phis[i](X,Y))
-axs[1].set_title("$f$")
+torch.save(solutions,"./data/solutions.pt")
+torch.save(laplacians,"./data/laplacians.pt")
 # %%
