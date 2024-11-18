@@ -28,12 +28,13 @@ train_dataloader = torch.utils.data.DataLoader(training_data, batch_size=64, shu
 class MyFNO(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
-        self.fno = FNO(n_modes=(5, 5), n_layers=3, hidden_channels=5, in_channels=2, out_channels=1)
+        # self.fno = FNO(n_modes=(5, 5), n_layers=3, hidden_channels=5, in_channels=2, out_channels=1)
+        self.fno = FNO(n_modes=(5, 5), n_layers=10, hidden_channels=5, in_channels=2, out_channels=1)
         self.loss_fn = torch.nn.MSELoss()
     def forward(self,X):
         # ensure that the shape is (batch size, 2, n, n)
         # here the dimension of 2 encodes 1: the laplacians, 2: bouldery conditions
-        Y_hat = self.fno(X)
+        Y_hat = self.fno(X) #+ X[:,1,:,:].reshape((-1,1,10,10))
         return Y_hat
 
     def criterion(self,Y, Y_hat):
@@ -64,9 +65,9 @@ def train():
             loss = model.criterion(Y, Y_hat)
             loss.backward()
             optimizer.step()
-            losses.append(loss.detach().cpu())
 
             if i % 100 == 0:
+                losses.append(loss.detach().cpu())
                 print(losses[-1])
                 plt.semilogy(losses)
                 plt.show()

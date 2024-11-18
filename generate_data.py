@@ -1,45 +1,28 @@
 #%%
-import itertools
-
+import numpy as np
 import torch
+from matplotlib import pyplot as plt
 from sympy import *
 
 # %%
-
-
-func_dict = {
-    sin,
-    cos,
-    lambda x: x**2,
-    lambda x: x**3,
-}
-
-operator_dict = {
-    lambda x,y: x*y,
-    lambda x, y: x + y,
-}
 
 x,y = symbols("x, y")
 
 phis = []
 fs = []
 
-for func_1, operator_1 in itertools.product(func_dict, operator_dict):
+# number of functions
+N = 1_000
 
-    phi = func_1(operator_1(x, y))
-    phis.append(lambdify((x,y), phi))
-    fs.append(lambdify((x,y),diff(phi, x,x) + diff(phi,y,y)))
+# number of blobs
+n = 5
 
-    for func_2, operator_2 in itertools.product(func_dict, operator_dict):
-        phi = operator_1(func_1(operator_1(x, y)),func_2(operator_2(x,y)))
-        phis.append(lambdify((x,y), phi))
-        fs.append(lambdify((x,y),diff(phi, x,x) + diff(phi,y,y)))
-
-        for func_3, operator_3 in itertools.product(func_dict, operator_dict):
-            phi = operator_3(func_2(operator_2(x, y)),func_1(operator_1(x,y)))
-            phis.append(lambdify((x,y), phi))
-            fs.append(lambdify((x,y),diff(phi, x,x) + diff(phi,y,y)))
-        
+for i in range(N):
+    p = 1
+    for j in range(n):
+        p += 1 * exp(-(((x - np.random.rand())**2 + (y - np.random.rand())**2) / (2 * 0.2**2)))
+    phis.append(lambdify((x,y), p))
+    fs.append(lambdify((x,y), diff(p, x) + diff(p, y)))
 # %%
 n = 10
 
@@ -56,4 +39,8 @@ for i, (phi, f) in enumerate(zip(phis, fs)):
 
 torch.save(solutions,"./data/solutions.pt")
 torch.save(laplacians,"./data/laplacians.pt")
+# %%
+
+plt.matshow(solutions[90])
+
 # %%
