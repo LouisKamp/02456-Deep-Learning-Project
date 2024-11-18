@@ -1,7 +1,9 @@
 #%%
-from sympy import *
 import itertools
+
 import torch
+from sympy import *
+
 # %%
 
 
@@ -32,6 +34,11 @@ for func_1, operator_1 in itertools.product(func_dict, operator_dict):
         phi = operator_1(func_1(operator_1(x, y)),func_2(operator_2(x,y)))
         phis.append(lambdify((x,y), phi))
         fs.append(lambdify((x,y),diff(phi, x,x) + diff(phi,y,y)))
+
+        for func_3, operator_3 in itertools.product(func_dict, operator_dict):
+            phi = operator_3(func_2(operator_2(x, y)),func_1(operator_1(x,y)))
+            phis.append(lambdify((x,y), phi))
+            fs.append(lambdify((x,y),diff(phi, x,x) + diff(phi,y,y)))
         
 # %%
 n = 10
