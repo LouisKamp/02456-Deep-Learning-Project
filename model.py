@@ -21,9 +21,9 @@ train_dataloader = torch.utils.data.DataLoader(training_data, batch_size=64, shu
 #%%
 
 class MyFNO(torch.nn.Module):
-    def __init__(self, n) -> None:
+    def __init__(self) -> None:
         super().__init__()
-        self.fno = FNO(n_modes=(5, 5), n_layers=3, hidden_channels=10, in_channels=2, out_channels=1)
+        self.fno = FNO(n_modes=(5, 5), n_layers=3, hidden_channels=5, in_channels=2, out_channels=1)
         self.loss_fn = torch.nn.MSELoss()
     def forward(self,X):
         # ensure that the shape is (batch size, 2, n, n)
@@ -45,7 +45,7 @@ class MyFNO(torch.nn.Module):
 
 
 # %%
-model = MyFNO(10)
+model = MyFNO()
 optimizer = torch.optim.Adam(params=model.parameters(),lr=0.00001)
 
 #%%
