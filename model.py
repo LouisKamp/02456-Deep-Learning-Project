@@ -6,9 +6,14 @@ import torch.optim.adam
 import torch.optim.sgd
 from neuralop.models import FNO
 
+device = 'cpu'
 if torch.backends.mps.is_available():
     torch.set_default_device("mps")
-device = 'mps' if torch.backends.mps.is_available() else 'cpu'
+    device = 'mps'
+
+if torch.cuda.is_available():
+    torch.set_default_device("cuda")
+    device = 'cuda'
 
 from dataset import FunctionDataset
 
