@@ -12,19 +12,19 @@ phis = []
 fs = []
 
 # number of functions
-N = 1_000
+N = 10_000
 
 # number of blobs
-n = 5
+n = 2
 
 for i in range(N):
-    p = 1
+    p = 0
     for j in range(n):
         p += 1 * exp(-(((x - np.random.rand())**2 + (y - np.random.rand())**2) / (2 * 0.2**2)))
     phis.append(lambdify((x,y), p))
     fs.append(lambdify((x,y), diff(p, x) + diff(p, y)))
 # %%
-n = 10
+n = 16
 
 X, Y = torch.meshgrid(torch.linspace(0,1,n), torch.linspace(0,1,n))
 
@@ -41,6 +41,6 @@ torch.save(solutions,"./data/solutions.pt")
 torch.save(laplacians,"./data/laplacians.pt")
 # %%
 
-plt.matshow(solutions[90])
+plt.matshow(solutions[13])
 
 # %%
