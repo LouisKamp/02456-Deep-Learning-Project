@@ -57,7 +57,7 @@ model = MyFNO()
 #%%
 def train(lr: float, epoch: int):
     losses = []
-    optimizer = torch.optim.SGD(params=model.parameters(),lr=lr)
+    optimizer = torch.optim.Adam(params=model.parameters(),lr=lr)
     try:
         for i in range(epoch):
             X, Y = next(iter(train_dataloader))
@@ -84,13 +84,13 @@ torch.save(losses,"./losses.pt")
 torch.save(model, "./model.pt")
 
 # %%
-# n = 16
-# X, Y = next(iter(train_dataloader))
-# Y_hat = model.forward(X[0].reshape((-1,2,n,n)))
+n = 16
+X, Y = next(iter(train_dataloader))
+Y_hat = model.forward(X[0].reshape((-1,2,n,n)))
 
-# fig, axs = plt.subplots(1,3)
+fig, axs = plt.subplots(1,3)
 
-# axs[0].matshow(Y_hat[0,0].detach().cpu())
-# axs[1].matshow(Y[0,0].cpu())
-# axs[2].matshow(X[0,0].cpu())
+axs[0].matshow(Y_hat[0,0].detach().cpu())
+axs[1].matshow(Y[0,0].cpu())
+axs[2].matshow(X[0,0].cpu())
 # %%
