@@ -1,7 +1,6 @@
 #%%
 import numpy as np
 import torch
-from matplotlib import pyplot as plt
 from sympy import *
 
 # %%
@@ -12,14 +11,14 @@ phis = []
 fs = []
 
 # number of functions
-N = 1000
+N = 10_000
 
 # number of blobs
-n = 10
+blobs = 10
 
 for i in range(N):
     p = 0
-    for j in range(n):
+    for j in range(blobs):
         pos_x = np.random.rand()
         pos_y = np.random.rand()
 
@@ -33,25 +32,32 @@ for i in range(N):
     phis.append(lambdify((x,y), p))
     fs.append(lambdify((x,y), diff(p, x,x) + diff(p, y,y)))
 # %%
-n = 32
 
-X, Y = torch.meshgrid(torch.linspace(0,1,n), torch.linspace(0,1,n))
+grid_width = 64
+X, Y = torch.meshgrid(torch.linspace(0,1,grid_width), torch.linspace(0,1,grid_width))
 
-#%%
-
-solutions = torch.zeros((len(phis), n, n))
-laplacians = torch.zeros((len(phis), n, n))
+solutions = torch.zeros((len(phis), grid_width, grid_width))
+laplacians = torch.zeros((len(phis), grid_width, grid_width))
 
 for i, (phi, f) in enumerate(zip(phis, fs)):
     solutions[i] = phi(X,Y)
     laplacians[i] = f(X,Y)
 
-torch.save(solutions,"./data/solutions.pt")
-torch.save(laplacians,"./data/laplacians.pt")
-# %%
+torch.save(solutions,"./data/solutions_64.pt")
+torch.save(laplacians,"./data/laplacians_64.pt")
 
-plt.matshow(laplacians[0])
 
 # %%
-plt.matshow(solutions[0])
+grid_width = 16
+X, Y = torch.meshgrid(torch.linspace(0,1,grid_width), torch.linspace(0,1,grid_width))
+
+solutions = torch.zeros((len(phis), grid_width, grid_width))
+laplacians = torch.zeros((len(phis), grid_width, grid_width))
+
+for i, (phi, f) in enumerate(zip(phis, fs)):
+    solutions[i] = phi(X,Y)
+    laplacians[i] = f(X,Y)
+
+torch.save(solutions,"./data/solutions_16.pt")
+torch.save(laplacians,"./data/laplacians_16.pt")
 # %%

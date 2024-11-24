@@ -19,4 +19,4 @@ class FunctionDataset(torch.utils.data.Dataset):
         return self.len
 
     def __getitem__(self, idx):
-        return self.X[idx], self.Y[idx]
+        return self.X[idx].requires_grad_(True), self.Y[idx].requires_grad_(True)
