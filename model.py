@@ -92,7 +92,7 @@ def train(lr: float, epoch: int):
 
 
 # %%
-losses = train(lr=0.000001,epoch=10_000)
+losses = train(lr=0.00001,epoch=10_000)
 # torch.save(losses,"./losses.pt")
 # torch.save(model, "./model.pt")
 
@@ -111,4 +111,24 @@ axs[0].set_title("Predicted")
 
 axs[1].matshow(Y[0,0].detach().cpu())
 axs[1].set_title("True")
+# %%
+from sympy import *
+x, y = symbols("x, y")
+sol = sin(4 * pi * (x + y)) + cos(4 * pi * x * y)
+
+s = lambdify((x,y), sol)
+f = lambdify((x,y), diff(sol, x,x) + diff(sol, y,y))
+
+# %%
+grid_width = 100
+X, Y = torch.meshgrid(torch.linspace(0,1,grid_width).cpu(), torch.linspace(0,1,grid_width).cpu())
+
+
+
+F = f(X,Y)
+# %%
+R = model(F.reshape((1,1,grid_width,grid_width)).to(device)).cpu().detach()
+# %%
+plt.contourf(R[0,0])
+plt.colorbar()
 # %%
