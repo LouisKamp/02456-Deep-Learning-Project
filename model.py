@@ -30,7 +30,7 @@ class MyFNO(torch.nn.Module):
         super().__init__()
         # self.fno = FNO(n_modes=(5, 5), n_layers=3, hidden_channels=5, in_channels=2, out_channels=1)
         # Fourier neural operator
-        self.fno = FNO(n_modes=(2, 2), n_layers=2, hidden_channels=64, in_channels=2, out_channels=1)
+        self.fno = FNO(n_modes=(1, 1), n_layers=2, hidden_channels=32, in_channels=1, out_channels=1)
         self.loss_fn = torch.nn.MSELoss()
     def forward(self,X):
         # ensure that the shape is (batch size, 2, n, n)
@@ -43,7 +43,7 @@ class MyFNO(torch.nn.Module):
         laplacian_kernel = torch.tensor([
             [0., 0., 1., 0., .0],
             [0., 2., -8., 2., .0],
-            [1., -8., 20., -8., .0],
+            [1., -8., 20., -8., 1.],
             [0., 2., -8., 2., .0],
             [0., 0., 1., 0., .0],
         ]).unsqueeze(0).unsqueeze(0)
@@ -92,7 +92,7 @@ def train(lr: float, epoch: int):
 
 
 # %%
-losses = train(lr=0.00001,epoch=10_000)
+losses = train(lr=0.000001,epoch=10_000)
 # torch.save(losses,"./losses.pt")
 # torch.save(model, "./model.pt")
 
@@ -102,7 +102,7 @@ test_dataloader = torch.utils.data.DataLoader(test_data, batch_size=64, shuffle=
 n_test = 64
 #%%
 X, Y = next(iter(test_dataloader))
-Y_hat = model.forward(X[0].reshape((-1,2,n_test,n_test)))
+Y_hat = model.forward(X[0].reshape((-1,1,n_test,n_test)))
 
 fig, axs = plt.subplots(1,2)
 
