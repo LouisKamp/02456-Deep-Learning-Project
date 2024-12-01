@@ -1,14 +1,14 @@
 import torch
 
 class FunctionDataset(torch.utils.data.Dataset):
-    def __init__(self, solutions_path: str, laplacians_path: str):
-        solutions = torch.load(solutions_path)
-        laplacians = torch.load(laplacians_path)
+    def __init__(self, solutions_path: str, laplacians_path: str, device: str = "cpu"):
+        solutions = torch.load(solutions_path).to(device)
+        laplacians = torch.load(laplacians_path).to(device)
         n = solutions.shape[1]
         self.len = len(solutions)
 
-        self.X = torch.zeros((self.len), 1, n,n)
-        self.Y = torch.zeros((self.len), 1, n,n)
+        self.X = torch.zeros((self.len), 1, n,n).to(device)
+        self.Y = torch.zeros((self.len), 1, n,n).to(device)
 
         self.X[:,0] = laplacians
         # self.X[:,1] = solutions

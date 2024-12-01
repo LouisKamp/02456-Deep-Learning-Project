@@ -11,7 +11,7 @@ phis = []
 fs = []
 
 # number of functions
-N = 10_000
+N = 100
 
 # number of blobs
 blobs = 10
@@ -43,8 +43,8 @@ for i, (phi, f) in enumerate(zip(phis, fs)):
     solutions[i] = phi(X,Y)
     laplacians[i] = f(X,Y)
 
-torch.save(solutions,"./data/solutions_64.pt")
-torch.save(laplacians,"./data/laplacians_64.pt")
+torch.save(solutions,"./data/solutions_validate_64.pt")
+torch.save(laplacians,"./data/laplacians_validate_64.pt")
 
 
 # %%
@@ -58,6 +58,6 @@ for i, (phi, f) in enumerate(zip(phis, fs)):
     solutions[i] = phi(X,Y)
     laplacians[i] = f(X,Y)
 
-torch.save(solutions,"./data/solutions_16.pt")
-torch.save(laplacians,"./data/laplacians_16.pt")
+torch.save(solutions,"./data/solutions_validate_16.pt")
+torch.save(laplacians,"./data/laplacians_validate_16.pt")
 # %%
