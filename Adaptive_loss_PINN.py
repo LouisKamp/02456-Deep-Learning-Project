@@ -3,9 +3,13 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
+from softadapt import SoftAdapt, NormalizedSoftAdapt, LossWeightedSoftAdapt
 
 # Check device (use MPS if on silicon Mac or CUDA if available)
 device = torch.device("mps" if torch.backends.mps.is_available() else "cuda" if torch.cuda.is_available() else "cpu")
+
+# print device
+print(f"Using device: {device}")
 
 # Define the analytical solution
 def analytical_solution(x, y):
@@ -53,7 +57,7 @@ def loss_pinn(model, xy, x_boundary, u_boundary, f):
     # boundary condition loss
     u_boundary_pred = model(x_boundary)
     boundary_loss = torch.mean((u_boundary_pred - u_boundary)**2)
-    return physical_loss +  10 * boundary_loss
+    return physical_loss, boundary_loss
 
 
 # Problem setup
@@ -77,22 +81,54 @@ x_boundary = torch.cat([
 # Boundary condition values using the analytical solution
 u_boundary = analytical_solution(x_boundary[:, 0], x_boundary[:, 1]).unsqueeze(1).to(device)
 
+softadapt_object = NormalizedSoftAdapt(beta=0.1)
 
+physical_losses = []
+boundary_losses = []
+
+# Losses for plotting
+physical_losses1 = []
+boundary_losses1 = []
+
+# Number of epochs to make updates
+epochs_to_make_updates = 5
+
+adapt_weights = torch.tensor([1, 1])
 
 # Training
 num_epochs = 50000
 model = PINN().to(device)
-optimizer = optim.Adam(model.parameters(), lr=0.00005)
+optimizer = optim.Adam(model.parameters(), lr=0.00001)
 
 # Training loop
 for epoch in range(num_epochs):
     optimizer.zero_grad()
-    loss = loss_pinn(model, x_interior, x_boundary, u_boundary, f)
+    physical_loss, boundary_loss = loss_pinn(model, x_interior, x_boundary, u_boundary, f)
+
+    physical_losses.append(physical_loss)
+    boundary_losses.append(boundary_loss)
+    if epoch % epochs_to_make_updates == 0 and epoch != 0:
+          
+        adapt_weights = softadapt_object.get_component_weights(torch.tensor(physical_losses), 
+                                                                 torch.tensor(boundary_losses), 
+                                                                 verbose=False,
+                                                                 )
+        physical_losses = []
+        boundary_losses = []
+
+    loss = adapt_weights[0] * physical_loss.view(-1) + adapt_weights[1] * boundary_loss.view(-1)
+          
+                                                          
+
     loss.backward()
     optimizer.step()
+
+    # Update the learning rate
+    #scheduler.step()
     
     if epoch % 100 == 0:
         print(f"Epoch {epoch}: Loss = {loss.item()}, LR = {optimizer.param_groups[0]['lr']}")
+
 # Plotting: 
 grid_x, grid_y = torch.meshgrid(torch.linspace(0, 1, 100), torch.linspace(0, 1, 100))
 grid_points = torch.stack([grid_x.flatten(), grid_y.flatten()], dim=-1).to(device)
@@ -128,3 +164,6 @@ plt.title("Absolute Error")
 
 plt.tight_layout()
 plt.show()
+
+print("Absolute error:", np.mean(np.abs(u_pred - u_analytical)))
+print("L2 error:", np.sqrt(np.mean((u_pred - u_analytical) ** 2)))
