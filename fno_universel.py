@@ -127,6 +127,15 @@ losses = model.train_loop(lr=0.0001,training_epochs=20)
 # torch.save(losses,"./losses.pt")
 # torch.save(model, "./model.pt")
 
+#%%
+
+plt.semilogy(losses, label=["Boundary loss", "Laplacian loss"])
+plt.legend()
+plt.title("Normalized Soft Adapt losses")
+plt.xlabel("Epochs")
+plt.ylabel("Loss")
+plt.savefig("figures/fno_universal_losses.pdf")
+
 # %%
 test_data = FunctionDataset("data/solutions_64.pt", "data/laplacians_64.pt", device)
 test_dataloader = torch.utils.data.DataLoader(test_data, batch_size=64, shuffle=True)

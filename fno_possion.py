@@ -17,6 +17,19 @@ if torch.cuda.is_available():
 
 #%%
 
+x, y = symbols("x, y")
+sol = sin(4 * pi * (x + y)) + cos(4 * pi * x * y)
+
+s = lambdify((x,y), sol)
+f = lambdify((x,y), diff(sol, x,x) + diff(sol, y,y))
+
+grid_width = 100
+X, Y = torch.meshgrid(torch.linspace(0,1,grid_width).cpu(), torch.linspace(0,1,grid_width).cpu())
+X = X.reshape((1,1,grid_width,grid_width))
+Y = Y.reshape((1,1,grid_width,grid_width))
+
+#%%
+
 class MyFNO(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -77,25 +90,13 @@ class MyFNO(torch.nn.Module):
 
         optimizer = torch.optim.Adam(params=model.parameters(),lr=lr)
 
-
-        x, y = symbols("x, y")
-        sol = sin(4 * pi * (x + y)) + cos(4 * pi * x * y)
-
-        s = lambdify((x,y), sol)
-        f = lambdify((x,y), diff(sol, x,x) + diff(sol, y,y))
-
-        grid_width = 100
-        X, Y = torch.meshgrid(torch.linspace(0,1,grid_width).cpu(), torch.linspace(0,1,grid_width).cpu())
-        X = X.reshape((1,1,grid_width,grid_width))
-        Y = Y.reshape((1,1,grid_width,grid_width))
-
         try:
             for current_epoch in range(training_epochs):
                 # Solution
                 S = s(X,Y).to(device)
-
                 # Laplacian
                 F = f(X,Y).to(device)
+
                 optimizer.zero_grad()
                 S_hat = model.forward(F)
                 losses = model.losses(S, S_hat)
@@ -121,9 +122,41 @@ class MyFNO(torch.nn.Module):
 model = MyFNO().to(device)
 
 # %%
-losses = model.train_loop(lr=0.0001,training_epochs=2000)
+losses = model.train_loop(lr=0.0001,training_epochs=4000)
 # torch.save(losses,"./losses.pt")
 # torch.save(model, "./model.pt")
 # %%
 
-plt.semilogy(losses)
+plt.semilogy(losses, label=["Boundary loss", "Laplacian loss"])
+plt.legend()
+plt.title("Normalized Soft Adapt losses")
+plt.xlabel("Epochs")
+plt.ylabel("Loss")
+plt.savefig("figures/fno_possion_losses.pdf")
+# %%
+
+grid_width = 1000
+X, Y = torch.meshgrid(torch.linspace(0,1,grid_width).cpu(), torch.linspace(0,1,grid_width).cpu())
+X = X.reshape((1,1,grid_width,grid_width))
+Y = Y.reshape((1,1,grid_width,grid_width))
+
+# Solution
+S = s(X,Y).to(device)
+# Laplacian
+F = f(X,Y).to(device)
+
+S_hat = model.forward(F).detach()
+mse_solution = torch.mean((S - S_hat)**2)
+# %%
+
+fig, axs = plt.subplots(1,2)
+solution_plot = axs[0].contourf(S_hat[0,0].cpu())
+error_plot = axs[1].contourf((S_hat[0,0] - S[0,0]).cpu())
+
+axs[0].set_title("Solution")
+axs[1].set_title(f"Error (MSE: {mse_solution:0.2f})")
+fig.colorbar(solution_plot, ax=axs[0])
+fig.colorbar(error_plot, ax=axs[1])
+fig.tight_layout()
+plt.savefig("figures/fno_possion_solution_1000_1000.pdf")
+# %%
